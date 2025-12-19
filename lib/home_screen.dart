@@ -571,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     opacity: _labTestFadeAnimation,
                     child: Column(
                       children: [
-                        _buildSectionHeader('Lab Test', () {
+                        _buildSectionHeader('Recommended Lab Test', () {
                           print('View all lab tests');
                         }),
                         const SizedBox(height: 12),
