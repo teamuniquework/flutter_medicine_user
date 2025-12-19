@@ -395,14 +395,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'Gurugram',
+                          'Gurugram,',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const Text(
-                          ' 122102',
+                          ' 123456',
                           style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         const Spacer(),
