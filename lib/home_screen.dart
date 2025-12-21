@@ -1246,7 +1246,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     {
       'id': 0,
       'name': 'Paracetamol tablate 500mg',
-      'image': 'https://picsum.photos/150?random=1',
+      'image': 'assets/images/medicine1.jpeg',
       'originalPrice': '₹50',
       'discountedPrice': '₹45',
       'discount': '10% OFF',
@@ -1255,7 +1255,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     {
       'id': 1,
       'name': 'Crocin Advance',
-      'image': 'https://picsum.photos/150?random=2',
+      'image': 'assets/images/medicine2.jpeg',
       'originalPrice': '₹40',
       'discountedPrice': '₹32',
       'discount': '20% OFF',
@@ -1264,7 +1264,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     {
       'id': 2,
       'name': 'Dolo 650',
-      'image': 'https://picsum.photos/150?random=3',
+      'image': 'assets/images/medicine3.jpeg',
       'originalPrice': '₹35',
       'discountedPrice': '₹28',
       'discount': '15% OFF',
@@ -1523,11 +1523,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // Animate product image flying to cart
+  // Animate product image flying to cart
   void _animateProductToCart(
     GlobalKey productKey,
     String imageUrl,
     int medicineId,
   ) {
+    // Update quantity IMMEDIATELY before animation
+    _updateQuantity(medicineId, 1);
+
     // Get cart icon position
     final cartBox =
         _cartIconKey.currentContext?.findRenderObject() as RenderBox?;
@@ -1558,8 +1562,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         onComplete: () {
           _flyingImageOverlay?.remove();
           _flyingImageOverlay = null;
-          // Update quantity after animation
-          _updateQuantity(medicineId, 1);
+          // Animation complete - no need to update quantity again
         },
       ),
     );
@@ -2194,23 +2197,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
                     ),
-                    child: Image.network(
+                    child: Image.asset(
                       medicine['image'],
                       height: 130,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: Color(0xFF0288D1),
-                          ),
-                        );
-                      },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           padding: const EdgeInsets.all(20),
@@ -2528,18 +2519,9 @@ class _FlyingImageState extends State<_FlyingImage>
                   ],
                 ),
                 child: ClipOval(
-                  child: Image.network(
+                  child: Image.asset(
                     widget.imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF0288D1),
-                        ),
-                      );
-                    },
+                    fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         padding: const EdgeInsets.all(15),
