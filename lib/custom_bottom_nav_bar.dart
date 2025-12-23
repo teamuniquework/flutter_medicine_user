@@ -74,44 +74,82 @@ class CustomBottomNavBar extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () => onItemTapped(index),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xFF0288D1),
-          shape: BoxShape.circle,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      // spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(2, 3),
+      child: isSelected
+          ? Container(
+              width: 56,
+              height: 56,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Layer 1: Outer shadow
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(2, 3),
+                        ),
+                      ],
                     ),
-                  ]
-                : null,
-          ),
-          child: Icon(
-            icon,
-            color: isSelected ? const Color(0xFF0288D1) : Colors.white,
-            size: 28,
-          ),
-        ),
-      ),
+                    // Layer 2: First white circle
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      // Layer 3: Middle shadow
+                      child: Container(
+                        margin: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 3,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        // Layer 4: Inner white circle with shadow
+                        child: Container(
+                          margin: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.5),
+                                blurRadius: 3,
+                                offset: const Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                          // Layer 5: Icon (center it properly)
+                          child: Center(
+                            child: Icon(
+                              icon,
+                              size: 28,
+                              color: const Color(0xFF0288D1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0288D1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
     );
   }
 }
