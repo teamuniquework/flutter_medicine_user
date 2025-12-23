@@ -17,19 +17,96 @@ class CartScreen extends StatefulWidget {
   State<CartScreen> createState() => _CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   Map<int, int> quantities = {};
   List<File> uploadedPrescriptions = [];
   bool showPrescriptionDialog = false;
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
 
+  // Animation controllers for each item
+  Map<int, AnimationController> _itemAnimationControllers = {};
+  Map<int, Animation<Offset>> _itemSlideAnimations = {};
+  Map<int, Animation<double>> _itemFadeAnimations = {};
+
   @override
   void initState() {
     super.initState();
     quantities = Map.from(widget.medicineQuantities);
-    _checkPrescriptionRequired();
+    // _checkPrescriptionRequired();
     _scrollController.addListener(_onScroll);
+    _initializeAnimations();
+  }
+
+  void _initializeAnimations() {
+    for (var entry in quantities.entries) {
+      int medicineId = entry.key;
+
+      // Create animation controller for each item
+      var controller = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      );
+
+      _itemAnimationControllers[medicineId] = controller;
+
+      // Slide animation
+      _itemSlideAnimations[medicineId] = Tween<Offset>(
+        begin: const Offset(0, 0.5),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+
+      // Fade animation
+      _itemFadeAnimations[medicineId] = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeIn));
+
+      // Start animation
+      controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(CartScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check for new items and animate them
+    for (var entry in widget.medicineQuantities.entries) {
+      int medicineId = entry.key;
+
+      // If this is a new item (not in old quantities)
+      if (!quantities.containsKey(medicineId)) {
+        setState(() {
+          quantities[medicineId] = entry.value;
+        });
+
+        // Create and start animation for new item
+        var controller = AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 500),
+        );
+
+        _itemAnimationControllers[medicineId] = controller;
+
+        _itemSlideAnimations[medicineId] = Tween<Offset>(
+          begin: const Offset(0, 0.5),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+
+        _itemFadeAnimations[medicineId] = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(parent: controller, curve: Curves.easeIn));
+
+        controller.forward();
+      } else if (quantities[medicineId] != entry.value) {
+        // Update quantity if changed
+        setState(() {
+          quantities[medicineId] = entry.value;
+        });
+      }
+    }
   }
 
   void _onScroll() {
@@ -47,24 +124,11 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    // Dispose all animation controllers
+    for (var controller in _itemAnimationControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
-  }
-
-  void _checkPrescriptionRequired() {
-    // Check if any medicine requires prescription
-    int prescriptionCount = 0;
-    for (var entry in quantities.entries) {
-      var medicine = widget.medicines.firstWhere((m) => m['id'] == entry.key);
-      if (medicine['prescriptionRequired'] == true) {
-        prescriptionCount++;
-      }
-    }
-
-    if (prescriptionCount > 0) {
-      setState(() {
-        showPrescriptionDialog = true;
-      });
-    }
   }
 
   void _updateQuantity(int medicineId, int change) {
@@ -76,6 +140,11 @@ class _CartScreenState extends State<CartScreen> {
         quantities[medicineId] = newQty;
       } else {
         quantities.remove(medicineId);
+        // Dispose animation controller when item is removed
+        _itemAnimationControllers[medicineId]?.dispose();
+        _itemAnimationControllers.remove(medicineId);
+        _itemSlideAnimations.remove(medicineId);
+        _itemFadeAnimations.remove(medicineId);
       }
     });
   }
@@ -904,6 +973,27 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartItem(Map<String, dynamic> medicine, int quantity) {
+    int medicineId = medicine['id'];
+
+    // Get animations for this item
+    var slideAnimation = _itemSlideAnimations[medicineId];
+    var fadeAnimation = _itemFadeAnimations[medicineId];
+
+    // If animations don't exist (shouldn't happen), create them
+    if (slideAnimation == null || fadeAnimation == null) {
+      return _buildCartItemContent(medicine, quantity);
+    }
+
+    return SlideTransition(
+      position: slideAnimation,
+      child: FadeTransition(
+        opacity: fadeAnimation,
+        child: _buildCartItemContent(medicine, quantity),
+      ),
+    );
+  }
+
+  Widget _buildCartItemContent(Map<String, dynamic> medicine, int quantity) {
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
       padding: const EdgeInsets.all(12),
